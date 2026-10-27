@@ -1,0 +1,99 @@
+@import 'tailwindcss';
+
+@theme {
+  /* Deep navy / charcoal foundation */
+  --color-ink-950: #06121f;
+  --color-ink-900: #0b1f33;
+  --color-ink-800: #12304d;
+  --color-ink-700: #1c4a74;
+  --color-ink-600: #2b6394;
+
+  /* Surfaces */
+  --color-surface: #f5f7fa;
+  --color-surface-alt: #eef2f7;
+  --color-line: #dfe6ee;
+  --color-line-strong: #c7d2df;
+
+  /* Semantic */
+  --color-accent: #0f9d58;
+  --color-accent-strong: #0b7a45;
+  --color-warn: #b45309;
+  --color-danger: #b91c1c;
+  --color-info: #1d4ed8;
+  --color-muted: #5b6b7d;
+
+  --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-surface text-ink-900 font-sans antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ink-700);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white border border-line rounded-lg shadow-sm;
+  }
+
+  .card-header {
+    @apply px-5 py-4 border-b border-line flex items-start justify-between gap-3;
+  }
+
+  .label-caps {
+    @apply text-[11px] font-semibold uppercase tracking-wider text-muted;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium
+      transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+      bg-ink-900 text-white border-ink-900 hover:bg-ink-800;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium
+      transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+      bg-white text-ink-900 border-line-strong hover:bg-surface-alt;
+  }
+
+  .input {
+    @apply rounded-md border border-line-strong bg-white px-3 py-2 text-sm text-ink-900
+      focus:border-ink-700 focus:outline-none;
+  }
+
+  .table-base {
+    @apply w-full text-sm border-collapse;
+  }
+
+  .table-base th {
+    @apply text-left text-[11px] font-semibold uppercase tracking-wider text-muted
+      px-3 py-2 border-b border-line bg-surface-alt whitespace-nowrap;
+  }
+
+  .table-base td {
+    @apply px-3 py-2 border-b border-line align-top;
+  }
+
+  .table-scroll {
+    @apply overflow-x-auto;
+  }
+}

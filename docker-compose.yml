@@ -1,0 +1,65 @@
+# WindSight local stack: FastAPI + SQLite on a persistent volume, React served
+# by unprivileged nginx that proxies /api to the backend.
+#
+#   docker compose up -d --build
+#   docker compose exec backend python -m app.scripts.import_historical_data --status
+#
+# `windsight-data` holds the imported history (windsight.db) and the upstream
+# cache, so `docker compose down` (without -v) and rebuilds keep the data.
+services:
+  backend:
+    build:
+      context: ./backend
+    image: windsight-backend:latest
+    container_name: windsight-backend
+    environment:
+      # Persisted on the named volume, never inside the image layer.
+      DATABASE_URL: ${DATABASE_URL:-sqlite:////app/data/windsight.db}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      ELEXON_BASE_URL: ${ELEXON_BASE_URL:-https://data.elexon.co.uk/bmrs/api/v1}
+      EVAL_START: ${EVAL_START:-2026-01-01}
+      EVAL_END: ${EVAL_END:-2026-01-31}
+      DECISION_CUTOFF_HOUR: ${DECISION_CUTOFF_HOUR:-12}
+      DECISION_CUTOFF_MINUTE: ${DECISION_CUTOFF_MINUTE:-0}
+      DECISION_CUTOFF_DAY_OFFSET: ${DECISION_CUTOFF_DAY_OFFSET:--1}
+      CACHE_TTL_SECONDS: ${CACHE_TTL_SECONDS:-86400}
+      ENABLE_LIVE_FETCH: ${ENABLE_LIVE_FETCH:-true}
+      ALLOW_SNAPSHOT_FALLBACK: ${ALLOW_SNAPSHOT_FALLBACK:-true}
+      # Seed an empty database from the committed real Elexon snapshot so the
+      # demo is useful before anyone runs the import CLI.
+      SEED_ON_STARTUP: ${SEED_ON_STARTUP:-true}
+      # Empty disables the operator refresh endpoint.
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      AUTH_ENABLED: ${AUTH_ENABLED:-false}
+    ports:
+      - "8000:8000"
+    volumes:
+      - windsight-data:/app/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          python -c "import urllib.request,sys;
+          sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health',
+          timeout=5).status == 200 else 1)"
+      interval: 20s
+      timeout: 6s
+      retries: 5
+      start_period: 40s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    image: windsight-frontend:latest
+    container_name: windsight-frontend
+    ports:
+      - "3000:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  windsight-data:

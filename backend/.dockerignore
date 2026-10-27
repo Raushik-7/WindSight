@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+.env
+# Never bake a locally-imported database into the image: the deployed volume or
+# managed database is the source of truth. data/snapshots (real Elexon records)
+# is intentionally kept so a fresh container can seed itself.
+data/cache/
+data/*.db
+data/*.db-wal
+data/*.db-shm
