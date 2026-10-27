@@ -144,3 +144,15 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
 
 
 app = create_app()
+
+
+if __name__ == "__main__":  # pragma: no cover - manual entry point
+    import os
+
+    import uvicorn
+
+    # ``python -m app.main``: bind every interface (0.0.0.0, never localhost,
+    # so a container accepts external traffic) and honour the platform's
+    # dynamic port. Render/Heroku inject PORT (Render's default is 10000);
+    # local runs fall back to 8000.
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT") or "8000"))

@@ -29,11 +29,18 @@ RUN mkdir -p /app/data/cache && chown -R app:app /app/data
 
 USER app
 
+# Documentation only: the real listening port is read from $PORT at runtime
+# (Render assigns it, default 10000; Compose leaves it unset -> 8000).
 EXPOSE 8000
 
 # 200 means schema applied and data available; 503 means it is not. Only a 200
 # counts as healthy so `depends_on: condition: service_healthy` is meaningful.
+# The probe reads $PORT itself so it follows the same assignment as the server.
 HEALTHCHECK --interval=20s --timeout=6s --start-period=40s --retries=5 \
-  CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=5).status == 200 else 1)"
+  CMD python -c "import os,urllib.request,sys; port=os.environ.get('PORT') or '8000'; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:%s/api/health' % port, timeout=5).status == 200 else 1)"
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# `sh -c` so ${PORT:-8000} is expanded at start-up (the JSON form alone never
+# expands variables) and `exec` so uvicorn stays PID 1 and receives SIGTERM.
+# --host 0.0.0.0 is mandatory: localhost/127.0.0.1 is unreachable from
+# Render's port scan, the container network, and any external client.
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

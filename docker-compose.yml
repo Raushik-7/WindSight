@@ -16,6 +16,10 @@ services:
       # Persisted on the named volume, never inside the image layer.
       DATABASE_URL: ${DATABASE_URL:-sqlite:////app/data/windsight.db}
       ENVIRONMENT: ${ENVIRONMENT:-development}
+      # Listening port inside the container. Render overrides this with its
+      # own assignment (PORT, default 10000); locally it stays 8000 to match
+      # the host mapping and the healthcheck below.
+      PORT: "8000"
       ELEXON_BASE_URL: ${ELEXON_BASE_URL:-https://data.elexon.co.uk/bmrs/api/v1}
       EVAL_START: ${EVAL_START:-2026-01-01}
       EVAL_END: ${EVAL_END:-2026-01-31}

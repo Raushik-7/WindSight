@@ -26,6 +26,9 @@ services:
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
+      # Render assigns the listening port itself: PORT (default 10000) is set
+      # at runtime and the image's CMD binds to it. Never pin PORT here, and
+      # never override the Dockerfile CMD with a hardcoded-port start command.
       # Render injects a postgres:// URL; the app normalises it to psycopg 3.
       - key: DATABASE_URL
         fromDatabase:
